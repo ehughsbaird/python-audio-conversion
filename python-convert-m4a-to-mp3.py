@@ -1,4 +1,5 @@
 # Convert .m4a files to .mp3 files
+import argparse
 import os
 import logging
 import sys
@@ -6,9 +7,11 @@ import glob
 import mutagen
 from pydub import AudioSegment
 
-# Variables (set for your environment)
-music_dir = os.path.join(os.path.expanduser("~"), 'Music/tmp/convert-m4a-to-mp3')
-log_file = '/tmp/convert-m4a-to-mp3.log'
+parser = argparse.ArgumentParser(prog='m4a to mp3')
+parser.add_argument('directory')
+parser.add_argument('log_file')
+
+args = parser.parse_args()
 
 # Logging
 # Because I want a full log file to potentially reference, but still want to see activity...
@@ -20,7 +23,7 @@ my_logger = logging.getLogger()
 my_logger.setLevel(logging.INFO) # Switch from 'INFO' to 'DEBUG' for more detailed output
 
 # Handler for logging to file
-file_handler = logging.FileHandler(log_file, encoding="utf-8")
+file_handler = logging.FileHandler(args.log_file, encoding="utf-8")
 file_formatter = logging.Formatter('%(levelname)s %(asctime)s %(message)s')
 file_handler.setFormatter(file_formatter)
 
@@ -58,15 +61,13 @@ tags_to_check = list(set.intersection(set(allowed_mp3_tags), set(allowed_m4a_tag
 
 # Show the first message and then switch to showing only a single line
 switch_stdout_logger('perm')
-my_logger.info('Starting conversion scan of: %s' % music_dir)
+my_logger.info('Starting conversion scan of: %s' % args.directory)
 switch_stdout_logger('temp')
 
 def short_file_name(file_name):
-    return file_name.lstrip(music_dir)
+    return file_name.lstrip(args.directory)
 
-# Iterate through .m4a files in 'music_dir'
-os.chdir(music_dir)
-for m4a_file in glob.glob(music_dir + '/**/*.m4a', recursive=True):
+def convert_to_mp3(m4a_file):
     my_logger.debug(r'm4a file: %s', short_file_name(m4a_file))
     mp3_file = m4a_file[:-4] + '.mp3'
     if os.path.exists(mp3_file):
@@ -88,8 +89,16 @@ for m4a_file in glob.glob(music_dir + '/**/*.m4a', recursive=True):
             mp3_tags.save()
         except Exception:
             my_logger.exception('PROBLEM WITH CONVERTING: %s' % (short_file_name(m4a_file)))
+
+
+# Iterate through .m4a files in 'args.directory'
+for root, dirs, files in os.walk(args.directory):
+    for file in files:
+        filename = os.path.join(root, file)
+        if not filename.endswith('.m4a'):
             continue
+        convert_to_mp3(filename)
 
 # Reset stdout formatter to show the final message
 switch_stdout_logger('perm')
-my_logger.info('Finished conversion scan of: %s' % music_dir)
+my_logger.info('Finished conversion scan of: %s' % args.directory)

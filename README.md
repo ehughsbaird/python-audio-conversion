@@ -43,22 +43,14 @@ earlier in `$PATH` than the system version. This means I do not have to use `sud
 python3 -m pip install pydub mutagen
 ```
 
-**Modify variables in `python-convert-m4a-to-mp3.py`:**
-
-```
-# Variables:
-music_dir = os.path.join(os.path.expanduser("~"), 'Music/tmp/convert-m4a-to-mp3')
-log_file = '/tmp/convert-m4a-to-mp3.log'
-```
-
 
 ### Run
 
 ```
-python3 python-convert-m4a-to-mp3.py
+python3 python-convert-m4a-to-mp3.py path/to/directory/to/convert path/to/logfile.log
 ```
 Depending on the size of your music collection this could take quite some time,
 so after it is completed, you can check for errors (adjust log file if updated above):
 ```
-grep -A1 -B1 'PROBLEM WITH CONVERTING' /tmp/convert-m4a-to-mp3.log
+grep -A1 -B1 'PROBLEM WITH CONVERTING' /path/to/logfile.log
 ```
